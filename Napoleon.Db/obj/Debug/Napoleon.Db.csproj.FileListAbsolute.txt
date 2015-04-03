@@ -1,0 +1,6 @@
+D:\Napoleon\GitHub\功能模块\数据模块\DbModule\Napoleon.Db\bin\Debug\Napoleon.Db.dll
+D:\Napoleon\GitHub\功能模块\数据模块\DbModule\Napoleon.Db\bin\Debug\Napoleon.Db.pdb
+D:\Napoleon\GitHub\功能模块\数据模块\DbModule\Napoleon.Db\bin\Debug\Napoleon.PublicCommon.dll
+D:\Napoleon\GitHub\功能模块\数据模块\DbModule\Napoleon.Db\obj\Debug\Napoleon.Db.csprojResolveAssemblyReference.cache
+D:\Napoleon\GitHub\功能模块\数据模块\DbModule\Napoleon.Db\obj\Debug\Napoleon.Db.dll
+D:\Napoleon\GitHub\功能模块\数据模块\DbModule\Napoleon.Db\obj\Debug\Napoleon.Db.pdb
