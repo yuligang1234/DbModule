@@ -4,7 +4,8 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using Napoleon.PublicCommon;
+using Napoleon.PublicCommon.Cryptography;
+using Napoleon.PublicCommon.Field;
 
 namespace Napoleon.Db
 {
@@ -47,9 +48,9 @@ namespace Napoleon.Db
         /// <param name="parameters">The parameters.</param>
         /// Author  : Napoleon
         /// Created : 2015-02-09 16:54:18
-        public static SqlCommand OpenCommand(string sql, SqlParameter[] parameters = null)
+        public static SqlCommand OpenCommand(string sql, SqlConnection conn, SqlParameter[] parameters = null)
         {
-            using (SqlCommand cmd = new SqlCommand(sql, OpenConnection()))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 if (parameters != null)
                 {
@@ -62,15 +63,13 @@ namespace Napoleon.Db
         /// <summary>
         ///  初始化DataAdapter
         /// </summary>
-        /// <param name="sql">The SQL.</param>
-        /// <param name="parameters">parameters</param>
         /// Author  : 俞立钢
         /// Company : 绍兴标点电子技术有限公司
         /// Created : 2014-12-15 13:27:05
-        public static SqlDataAdapter OpenDataAdapter(string sql, SqlParameter[] parameters = null)
+        public static SqlDataAdapter OpenDataAdapter(string sql, SqlConnection conn, SqlParameter[] parameters = null)
         {
             SqlDataAdapter adapter = new SqlDataAdapter();
-            adapter.SelectCommand = OpenCommand(sql, parameters);
+            adapter.SelectCommand = OpenCommand(sql, conn, parameters);
             return adapter;
         }
 
@@ -86,6 +85,7 @@ namespace Napoleon.Db
             using (IDbConnection conn = OpenConnection())
             {
                 conn.Execute(procedure, parameters, null, null, CommandType.StoredProcedure);
+                conn.Dispose();//强制释放资源
             }
         }
 
@@ -102,8 +102,10 @@ namespace Napoleon.Db
             int number;
             using (IDbConnection conn = OpenConnection())
             {
+                conn.Query("", parameters, commandType: CommandType.StoredProcedure);
                 conn.Execute(procedure, parameters, commandType: CommandType.StoredProcedure);
                 number = parameters.Get<int>(intName);
+                conn.Dispose();//强制释放资源
             }
             return number;
         }
@@ -123,8 +125,12 @@ namespace Napoleon.Db
         public static DataSet GetDataSet(string sql, SqlParameter[] parameters = null)
         {
             DataSet ds = new DataSet();
-            IDbDataAdapter adapter = OpenDataAdapter(sql, parameters);
-            adapter.Fill(ds);
+            using (SqlConnection conn = OpenConnection())
+            {
+                SqlDataAdapter adapter = OpenDataAdapter(sql, conn, parameters);
+                adapter.Fill(ds);
+                conn.Dispose();
+            }
             return ds;
         }
 
@@ -157,10 +163,13 @@ namespace Napoleon.Db
         /// Created : 2014-09-01 21:04:20
         public static int ExecuteSql(string sql, object parameters)
         {
+            int i;
             using (IDbConnection conn = OpenConnection())
             {
-                return conn.Execute(sql, parameters);
+                i = conn.Execute(sql, parameters);
+                conn.Dispose();
             }
+            return i;
         }
 
         /// <summary>
@@ -184,6 +193,7 @@ namespace Napoleon.Db
                 {
                     row = 0;
                 }
+                conn.Dispose();
                 return row;
             }
         }
@@ -199,10 +209,13 @@ namespace Napoleon.Db
         /// Created : 2014-09-01 20:41:32
         public static List<T> GetEnumerables<T>(string sql, object parameters) where T : new()
         {
+            List<T> t;
             using (IDbConnection conn = OpenConnection())
             {
-                return conn.Query<T>(sql, parameters).ToList();
+                t = conn.Query<T>(sql, parameters).ToList();
+                conn.Dispose();
             }
+            return t;
         }
 
         /// <summary>
@@ -224,14 +237,14 @@ namespace Napoleon.Db
         }
 
         /// <summary>
-        ///  批量插入集合数据
+        ///  批量操作集合数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="sql">SQL</param>
         /// <param name="t">List</param>
         /// Author  : Napoleon
         /// Created : 2015-02-04 20:16:27
-        public static int InsertMultiple<T>(string sql, IEnumerable<T> t) where T : new()
+        public static int OperatorMultiple<T>(string sql, IEnumerable<T> t) where T : new()
         {
             using (IDbConnection conn = OpenConnection())
             {
@@ -249,6 +262,7 @@ namespace Napoleon.Db
                     }
                     transaction.Commit();
                 }
+                conn.Dispose();
                 return count;
             }
         }
