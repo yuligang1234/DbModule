@@ -1,2 +1,4 @@
-# DbModule
-数据模板,基于Dapper框架
+
+  数据模板,基于Dapper框架
+  
+  2016-02-15:加入存储过程返回dataset方法.

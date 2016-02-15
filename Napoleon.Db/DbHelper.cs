@@ -4,8 +4,6 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using Napoleon.PublicCommon.Cryptography;
-using Napoleon.PublicCommon.Field;
 
 namespace Napoleon.Db
 {
@@ -20,7 +18,8 @@ namespace Napoleon.Db
         /// Author  : 俞立钢
         /// Company : 绍兴标点电子技术有限公司
         /// Created : 2014-09-01 20:09:21
-        private static readonly string SqlConnection = _connectionString.DecrypteRc2(BaseFields.Rc2);
+        //private static readonly string SqlConnection = _connectionString.DecrypteRc2(BaseFields.Rc2);
+        private static readonly string SqlConnection = _connectionString;
         //private static readonly string SqlConnection = string.Format(@"Data Source=SKY-PC\SQL2005;Initial Catalog=UserModule;User Id=sa;Password=123456;");
 
         #region MSSQL数据库方法
@@ -45,10 +44,11 @@ namespace Napoleon.Db
         ///  Common
         /// </summary>
         /// <param name="sql">The SQL.</param>
-        /// <param name="parameters">The parameters.</param>
+        /// <param name="parameters">参数</param>
+        /// <param name="commandType">类型</param>
         /// Author  : Napoleon
         /// Created : 2015-02-09 16:54:18
-        public static SqlCommand OpenCommand(string sql, SqlConnection conn, SqlParameter[] parameters = null)
+        public static SqlCommand OpenCommand(string sql, SqlConnection conn, SqlParameter[] parameters = null, CommandType commandType = CommandType.Text)
         {
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
@@ -56,6 +56,7 @@ namespace Napoleon.Db
                 {
                     cmd.Parameters.AddRange(parameters);
                 }
+                cmd.CommandType = commandType;
                 return cmd;
             }
         }
@@ -66,15 +67,15 @@ namespace Napoleon.Db
         /// Author  : 俞立钢
         /// Company : 绍兴标点电子技术有限公司
         /// Created : 2014-12-15 13:27:05
-        public static SqlDataAdapter OpenDataAdapter(string sql, SqlConnection conn, SqlParameter[] parameters = null)
+        public static SqlDataAdapter OpenDataAdapter(string sql, SqlConnection conn, SqlParameter[] parameters = null, CommandType commandType = CommandType.Text)
         {
             SqlDataAdapter adapter = new SqlDataAdapter();
-            adapter.SelectCommand = OpenCommand(sql, conn, parameters);
+            adapter.SelectCommand = OpenCommand(sql, conn, parameters, commandType);
             return adapter;
         }
 
         /// <summary>
-        ///  使用存储过程,返回int
+        ///  使用存储过程
         /// </summary>
         /// <param name="procedure">存储过程名称</param>
         /// <param name="parameters">参数(StrSql,StrWhere,OrderBy,RecordCount)</param>
@@ -118,16 +119,17 @@ namespace Napoleon.Db
         ///  获取DataSet
         /// </summary>
         /// <param name="sql">SQL</param>
-        /// <param name="parameters">parameters</param>
+        /// <param name="parameters">参数</param>
+        /// <param name="commandType">类型</param>
         /// Author  : 俞立钢
         /// Company : 绍兴标点电子技术有限公司
         /// Created : 2014-09-01 20:18:16
-        public static DataSet GetDataSet(string sql, SqlParameter[] parameters = null)
+        public static DataSet GetDataSet(string sql, SqlParameter[] parameters = null, CommandType commandType = CommandType.Text)
         {
             DataSet ds = new DataSet();
             using (SqlConnection conn = OpenConnection())
             {
-                SqlDataAdapter adapter = OpenDataAdapter(sql, conn, parameters);
+                SqlDataAdapter adapter = OpenDataAdapter(sql, conn, parameters, commandType);
                 adapter.Fill(ds);
                 conn.Dispose();
             }
